@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VECV Executive MIS Dashboard</title>
+    <!-- Corporate & Design-system Styles -->
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Fonts & Chart.js -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+        <div class="container flex justify-between items-center header-content">
+            <!-- Logo & Company Name -->
+            <div class="flex items-center gap-8 logo-section">
+                <div class="logo" aria-label="VECV logo">VECV</div>
+                <span class="company-name">Volvo Eicher Commercial Vehicles</span>
+            </div>
+
+            <!-- Title & Controls -->
+            <div class="flex flex-col gap-8 header-info">
+                <h1>Executive MIS Dashboard</h1>
+                <div class="flex items-center gap-8 meta-info">
+                    <label for="monthPicker" class="sr-only">Select Month</label>
+                    <input type="month" id="monthPicker" aria-label="Filter dashboard by month" class="month-input form-control" />
+                    <span id="currentMonth" class="font-medium"></span>
+                    <span class="separator">|</span>
+                    <span id="lastUpdated" class="text-sm"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===== MAIN DASHBOARD ===== -->
+    <main class="dashboard container">
+        <!-- === PRODUCTION SECTION (unchanged) === -->
+        <section class="dashboard-section">
+            <div class="section-header">
+                <h2>Production Overview</h2>
+                <div class="toggle-switch flex items-center gap-8">
+                    <label class="switch">
+                        <input type="checkbox" id="productionToggle" aria-label="Toggle monthly / yearly production view">
+                        <span class="slider"></span>
+                    </label>
+                    <span id="toggleLabel" class="toggle-label">Monthly</span>
+                </div>
+            </div>
+            <div class="production-grid">
+                <div class="production-card">
+                    <canvas id="productionChart" height="220"></canvas>
+                </div>
+                <div class="production-stats">
+                    <div class="model-stat"><span class="model-name">Starline</span><span id="starline-value" class="model-value">0</span></div>
+                    <div class="model-stat"><span class="model-name">Skyline</span><span id="skyline-value" class="model-value">0</span></div>
+                    <div class="model-stat"><span class="model-name">Skyline Pro</span><span id="skylinepro-value" class="model-value">0</span></div>
+                    <div class="model-stat"><span class="model-name">HD Heavy Duty</span><span id="hd-value" class="model-value">0</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- === QUALITY METRICS SECTION === -->
+        <section class="dashboard-section">
+            <h2>Quality Metrics</h2>
+            <div class="cards-grid quality-grid">
+                <!-- Weld Audit -->
+                <div class="card" id="card-weld-audit">
+                    <div class="card-header"><h3>Weld Audit</h3></div>
+                    <div class="card-body">
+                        <div class="circular-progress">
+                            <canvas id="weldAuditChart" width="120" height="120"></canvas>
+                            <div class="progress-text" id="weldAuditText"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top 5 Defects -->
+                <div class="card" id="card-top-defects">
+                    <div class="card-header"><h3>Top 5 Defects</h3></div>
+                    <div class="card-body">
+                        <div id="defectsList" class="defects-list"></div>
+                    </div>
+                </div>
+
+                <!-- In-Process Audit -->
+                <div class="card" id="card-inprocess-audit">
+                    <div class="card-header"><h3>In-Process Audit</h3></div>
+                    <div class="card-body text-center">
+                        <div class="big-number" id="inProcessNumber"></div>
+                        <div id="inProcessStatus" class="status-indicator"></div>
+                    </div>
+                </div>
+
+                <!-- Critical Process Audit -->
+                <div class="card" id="card-critical-audit">
+                    <div class="card-header"><h3>Critical Process Audit</h3></div>
+                    <div class="card-body">
+                        <div class="circular-progress">
+                            <canvas id="criticalAuditChart" width="120" height="120"></canvas>
+                            <div class="progress-text" id="criticalAuditText"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- === IMPROVEMENTS & NPD SECTION === -->
+        <section class="dashboard-section">
+            <h2>Improvements & NPD</h2>
+            <div class="cards-grid improvements-grid">
+                <!-- Improvements Card (unchanged) -->
+                <div class="card clickable" onclick="showImprovements()">
+                    <div class="card-header"><h3>Improvements Made</h3></div>
+                    <div class="card-body">
+                        <div class="improvement-highlight" id="improvementHighlight"></div>
+                        <button class="btn btn--primary btn--sm">View Details</button>
+                    </div>
+                </div>
+
+                <!-- NPD Card -->
+                <div class="card" id="card-npd">
+                    <div class="card-header"><h3>NPD This Month</h3></div>
+                    <div class="card-body text-center">
+                        <div class="big-number" id="npdNumber"></div>
+                        <div class="npd-subtitle">New Products Developed</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- === QRQC & AUDITS SECTION === -->
+        <section class="dashboard-section">
+            <h2>QRQC & Audits</h2>
+            <div class="cards-grid qrqc-grid">
+                <!-- QRQC Meeting Status Card -->
+                <div class="card" id="qrqcCard">
+                    <div class="card-header"><h3>QRQC Meeting Status</h3></div>
+                    <div class="card-body">
+                        <div class="qrqc-categories">
+                            <div class="qrqc-item clickable" data-category="part" role="button" tabindex="0">
+                                <div class="qrqc-label">Part</div>
+                                <div class="qrqc-stats"><span class="closed" id="partClosed">0 Closed</span><span class="open" id="partOpen">0 Open</span></div>
+                            </div>
+                            <div class="qrqc-item clickable" data-category="process" role="button" tabindex="0">
+                                <div class="qrqc-label">Process</div>
+                                <div class="qrqc-stats"><span class="closed" id="processClosed">0 Closed</span><span class="open" id="processOpen">0 Open</span></div>
+                            </div>
+                            <div class="qrqc-item clickable" data-category="design" role="button" tabindex="0">
+                                <div class="qrqc-label">Design</div>
+                                <div class="qrqc-stats"><span class="closed" id="designClosed">0 Closed</span><span class="open" id="designOpen">0 Open</span></div>
+                            </div>
+                            <div class="qrqc-item clickable" data-category="system" role="button" tabindex="0">
+                                <div class="qrqc-label">System</div>
+                                <div class="qrqc-stats"><span class="closed" id="systemClosed">0 Closed</span><span class="open" id="systemOpen">0 Open</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Audit Card (unchanged) -->
+                <div class="card">
+                    <div class="card-header"><h3>Product Audit</h3></div>
+                    <div class="card-body">
+                        <div class="model-grid">
+                            <div class="model-card clickable" onclick="showModelDetails('Product Audit', 'Starline', 156)"><div class="model-name">Starline</div><div class="model-value">156</div></div>
+                            <div class="model-card clickable" onclick="showModelDetails('Product Audit', 'Skyline', 134)"><div class="model-name">Skyline</div><div class="model-value">134</div></div>
+                            <div class="model-card clickable" onclick="showModelDetails('Product Audit', 'Skyline Pro', 98)"><div class="model-name">Skyline Pro</div><div class="model-value">98</div></div>
+                            <div class="model-card clickable" onclick="showModelDetails('Product Audit', 'HD Heavy Duty', 67)"><div class="model-name">HD Heavy Duty</div><div class="model-value">67</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DPV Score Card (unchanged) -->
+                <div class="card">
+                    <div class="card-header"><h3>DPV Score</h3></div>
+                    <div class="card-body">
+                        <div class="model-grid">
+                            <div class="model-card clickable" onclick="showModelDetails('DPV Score', 'Starline', 4.2)"><div class="model-name">Starline</div><div class="model-value">4.2</div></div>
+                            <div class="model-card clickable" onclick="showModelDetails('DPV Score', 'Skyline', 4.5)"><div class="model-name">Skyline</div><div class="model-value">4.5</div></div>
+                            <div class="model-card clickable" onclick="showModelDetails('DPV Score', 'Skyline Pro', 4.8)"><div class="model-name">Skyline Pro</div><div class="model-value">4.8</div></div>
+                            <div class="model-card clickable" onclick="showModelDetails('DPV Score', 'HD Heavy Duty', 4.1)"><div class="model-name">HD Heavy Duty</div><div class="model-value">4.1</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===== EXISTING MODALS ===== -->
+    <div id="improvementsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="improvementsTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="improvementsTitle">Improvements Made This Month</h2>
+                <button class="close-btn" aria-label="Close improvements modal" onclick="closeModal('improvementsModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="improvementsBody"></div>
+        </div>
+    </div>
+
+    <div id="modelDetailsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modelModalTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modelModalTitle">Model Details</h2>
+                <button class="close-btn" aria-label="Close model details modal" onclick="closeModal('modelDetailsModal')">&times;</button>
+            </div>
+            <div class="modal-body" id="modelDetailsContent"></div>
+        </div>
+    </div>
+
+    <!-- ===== NEW QRQC DIALOG  ===== -->
+    <dialog id="qrqcDialog" class="qrqc-dialog" aria-label="QRQC detailed issues" aria-modal="true">
+        <div class="qrqc-dialog-header flex justify-between items-center">
+            <h2 id="qrqcDialogTitle">QRQC Details</h2>
+            <button class="btn-close" aria-label="Close details" id="qrqcCloseBtn">✕</button>
+        </div>
+        <div class="qrqc-dialog-tabs" role="tablist" id="qrqcTabList"></div>
+        <div id="qrqcTabPanels" class="qrqc-tab-panels"></div>
+    </dialog>
+
+    <script src="app.js"></script>
+</body>
+</html>
